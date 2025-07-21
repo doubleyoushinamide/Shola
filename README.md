@@ -230,12 +230,12 @@ This section provides a visual comparison between the original input images and 
 ### Side-view Comparison
 | Input Image | Generated Image |
 |-------------|----------------|
-| ![Side-view Input](image_files/side_input.jpg) | ![Side-view Output](image_files/generated_image_2.png) |
+| <img src="image_files/side_input.jpg" width="200"/> | <img src="image_files/generated_image_2.png" width="200"/> |
 
 ### Front-view Comparison
 | Input Image | Generated Image |
 |-------------|----------------|
-| ![Front-view Input](image_files/front_input.jpg) | ![Front-view Output](image_files/generated_image_3.png) |
+| <img src="image_files/front_input.jpg" width="200"/> | <img src="image_files/generated_image_3.png" width="200"/> |
 
 #### Why are the images not really identical?
 While the generated images aim to capture the core appearance and pose of the input, they are not pixel-perfect copies. This is expected and can be attributed to several factors:
