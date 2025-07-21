@@ -4,9 +4,6 @@ from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 
-# Define preprocessing transformations with augmentation
- 
-
 # Custom Dataset class for Sholy images
 class SholaDataset(Dataset):
     def __init__(self, root_dir):
@@ -36,7 +33,7 @@ class SholaDataset(Dataset):
         # Load with PIL, resize
         image = Image.open(img_path).convert("RGB")
         image = image.resize((512, 512))
-        # Gentle augmentation: RandomHorizontalFlip
+        # Applied a gentle augmentation: RandomHorizontalFlip
         if transforms.RandomHorizontalFlip(p=0.5)(Image.new('RGB', (1, 1))).getpixel((0, 0)) == (0, 0, 0):
             # This is a hack to get a random bool; the actual flip is applied below
             if transforms.RandomHorizontalFlip(p=0.5)(Image.new('RGB', (1, 1))).getpixel((0, 0)) == (0, 0, 0):
@@ -46,15 +43,12 @@ class SholaDataset(Dataset):
         image = transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])(image)
         return image, caption
 
-# Main preprocessing function
 def preprocess_and_save():
-    # Input and output directories
     input_dir = '/kaggle/input/image-input-main/image_input'
     output_dir = '/kaggle/working/processed_images'
     # output_format = '/kaggle/input/processed_images'
     os.makedirs(output_dir, exist_ok=True)
     
-    # Initialize dataset
     dataset = SholaDataset(input_dir)
     caption_data = []
 
@@ -63,7 +57,7 @@ def preprocess_and_save():
         img, caption = dataset[i]
         # Save normalized tensor as PNG for inspection (unnormalize first)
         img_np = img.numpy().transpose(1, 2, 0)
-        img_np = (img_np * 0.5) + 0.5  # Unnormalize
+        img_np = (img_np * 0.5) + 0.5  # This is the Unnormalize
         img_np = (img_np * 255).clip(0, 255).astype('uint8')
         img_pil = Image.fromarray(img_np)
         filename = f'image_{i}.png'
@@ -71,11 +65,11 @@ def preprocess_and_save():
         img_pil.save(img_path)
         caption_data.append({'image_path': filename, 'caption': caption})
 
-    # Save captions to CSV (image_path is just the filename)
+    # To save captions to CSV
     caption_df = pd.DataFrame(caption_data)
     caption_df.to_csv('/kaggle/working/captions.csv', index=False)
     print(f"Processed {len(caption_data)} images and saved with captions to /kaggle/working/")
 
-# Execute preprocessing
+#Execution
 if __name__ == "__main__":
     preprocess_and_save()
