@@ -3,6 +3,7 @@ from diffusers import StableDiffusionPipeline
 from peft import LoraConfig, get_peft_model
 import os
 
+#This is the same as 03_finetuning.py
 def load_lora_unet(pipe, checkpoint_path):
     lora_config = LoraConfig(
         r=16,
