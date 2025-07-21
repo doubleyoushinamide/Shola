@@ -1,6 +1,5 @@
 # Shola
-
-**Tags:**  
+ 
 ![text-to-image](https://img.shields.io/badge/text--to--image-blue)
 ![deep-learning](https://img.shields.io/badge/deep--learning-green)
 ![image-generation](https://img.shields.io/badge/image--generation-purple)
