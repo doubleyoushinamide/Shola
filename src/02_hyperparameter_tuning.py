@@ -8,14 +8,13 @@ import pandas as pd
 from PIL import Image
 import os
 
-# Define image transformations to match Stable Diffusion expectations
+#The definition here must match the one in 01_preprocessing.py
 transform = transforms.Compose([
-    transforms.ToTensor(),  # Converts to float32
+    transforms.ToTensor(),
     transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-    transforms.Lambda(lambda x: x.to(dtype=torch.float16))  # Convert to float16
+    transforms.Lambda(lambda x: x.to(dtype=torch.float16)) 
 ])
-
-# Custom Dataset class to load Sholy images and captions
+#Dataset loader for the images and captions
 class SholyDataset(Dataset):
     def __init__(self, csv_file, img_dir, transform=None):
         self.data = pd.read_csv(csv_file)
@@ -23,7 +22,7 @@ class SholyDataset(Dataset):
         self.transform = transform
         self.valid_paths = []
         for idx in range(len(self.data)):
-            img_filename = self.data.iloc[idx]['image_path']  # Now just the filename
+            img_filename = self.data.iloc[idx]['image_path']
             img_path = os.path.join(self.img_dir, img_filename)
             if os.path.exists(img_path):
                 self.valid_paths.append(idx)
@@ -37,7 +36,7 @@ class SholyDataset(Dataset):
 
     def __getitem__(self, idx):
         data_idx = self.valid_paths[idx]
-        img_filename = self.data.iloc[data_idx]['image_path']  # Now just the filename
+        img_filename = self.data.iloc[data_idx]['image_path']
         img_path = os.path.join(self.img_dir, img_filename)
         caption = self.data.iloc[data_idx]['caption']
         image = Image.open(img_path).convert('RGB')
@@ -47,17 +46,16 @@ class SholyDataset(Dataset):
 
 # Objective function for Optuna to minimize training loss
 def objective(trial):
-    # Define hyperparameter search space
+    # Here, we are tuning the learning rate ONLY
     lr = trial.suggest_float('lr', 1e-5, 1e-3, log=True)
-    batch_size = trial.suggest_int('batch_size', 1, 4, step=1)  # Lower batch size for OOM safety
+    #batch_size = trial.suggest_int('batch_size', 1, 4, step=1)  # Lower batch size for OOM safety
     
-    # Load dataset from Kaggle input directory
     csv_file = '/kaggle/input/image-preprocessor/captions.csv'
     img_dir = '/kaggle/input/image-preprocessor/processed_images'
     dataset = SholyDataset(csv_file, img_dir, transform=transform)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0)  # num_workers=0 for less memory
     
-    # Load Stable Diffusion model in half-precision for P100 GPU
+    #Loading the Stable diffusion model
     pipe = StableDiffusionPipeline.from_pretrained(
         "runwayml/stable-diffusion-v1-5", 
         torch_dtype=torch.float16
@@ -84,16 +82,16 @@ def objective(trial):
     # Set up optimizer with LoRA parameters only
     optimizer = torch.optim.AdamW(unet.parameters(), lr=lr, weight_decay=1e-2)
     
-    # Training loop for 5 epochs
+    # Training loop for 5 epochs for memory management
     import gc
     num_epochs = 5
     total_loss = 0
-    grad_accum_steps = 2  # Accumulate gradients over 2 batches (adjust as needed)
+    grad_accum_steps = 2 
     for epoch in range(num_epochs):
         optimizer.zero_grad()
         for i, batch in enumerate(dataloader):
             images, captions = batch
-            images = images.to("cuda")  # Images are already float16 from transform
+            images = images.to("cuda") 
 
             # Tokenize captions for text encoder
             inputs = pipe.tokenizer(
@@ -106,9 +104,9 @@ def objective(trial):
             text_embeddings = pipe.text_encoder(inputs.input_ids)[0]
 
             # Encode images to latent space
-            latents = pipe.vae.encode(images).latent_dist.sample() * 0.18215  # Scale as per Stable Diffusion
+            latents = pipe.vae.encode(images).latent_dist.sample() * 0.18215 
 
-            # Add noise and predict with U-Net
+            # This is IMPORTANT: Add noise and predict with U-Net
             noise = torch.randn_like(latents)
             timesteps = torch.randint(0, 1000, (latents.shape[0],), device="cuda").long()
             noisy_latents = pipe.scheduler.add_noise(latents, noise, timesteps)
@@ -116,14 +114,14 @@ def objective(trial):
 
             # Compute mean squared error loss
             loss = torch.nn.functional.mse_loss(predicted_noise, noise)
-            loss = loss / grad_accum_steps  # Normalize loss for accumulation
+            loss = loss / grad_accum_steps 
             loss.backward()
 
             if (i + 1) % grad_accum_steps == 0 or (i + 1) == len(dataloader):
                 optimizer.step()
                 optimizer.zero_grad()
 
-            # Free up memory after each batch
+            # Free up memory after each batch: IMPORTANT for memory management
             torch.cuda.empty_cache()
             gc.collect()
 
