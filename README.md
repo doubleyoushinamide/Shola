@@ -1,6 +1,13 @@
 # Shola
 
-**Tags:** `text-to-image` `deep-learning` `image-generation` `character-consistency` `unet` `pytorch` `replication-guide`
+**Tags:**  
+![text-to-image](https://img.shields.io/badge/text--to--image-blue)
+![deep-learning](https://img.shields.io/badge/deep--learning-green)
+![image-generation](https://img.shields.io/badge/image--generation-purple)
+![character-consistency](https://img.shields.io/badge/character--consistency-orange)
+![unet](https://img.shields.io/badge/unet-red)
+![pytorch](https://img.shields.io/badge/pytorch-lightgrey)
+![replication-guide](https://img.shields.io/badge/replication--guide-brightgreen)
 
 Shola is a text-to-image deep learning pipeline designed to generate images with consistent character appearances across different prompts and views. The project leverages PyTorch and UNet-based architectures, with a focus on robust preprocessing, hyperparameter tuning, fine-tuning, and inference.
 
