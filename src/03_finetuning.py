@@ -6,13 +6,14 @@ from peft import LoraConfig, get_peft_model
 import pandas as pd
 from PIL import Image
 import os
-
+#Dataset loader same as 02_hyperparameter_tuning.py
 def get_dataloader(csv_file, img_dir, batch_size):
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
         transforms.Lambda(lambda x: x.to(dtype=torch.float16))
     ])
+    
     class SholyDataset(Dataset):
         def __init__(self, csv_file, img_dir, transform=None):
             self.data = pd.read_csv(csv_file)
